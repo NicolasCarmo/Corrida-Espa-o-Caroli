@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RunTracker - Histórico</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📈 Histórico de Corridas</h1>
+            <div class="user-info" id="currentUser"></div>
+        </header>
+
+        <main id="historyContainer"></main>
+
+        <button onclick="window.location.href='tela_corrida.html'" class="big-button">🏃 Voltar à Corrida</button>
+    </div>
+
+    <script type="module">
+        let users = JSON.parse(localStorage.getItem('runtracker_users')) || [];
+        const user = users[users.length - 1];
+        document.getElementById('currentUser').textContent = user.name;
+
+        const historyContainer = document.getElementById('historyContainer');
+
+        if (user.activities.length === 0) {
+            historyContainer.innerHTML = '<p>Você ainda não fez nenhuma corrida.</p>';
+        } else {
+            user.activities.slice().reverse().forEach(a => {
+                const div = document.createElement('div');
+                div.className = 'user-card';
+                div.innerHTML = `
+                    <p><strong>Data:</strong> ${a.date}</p>
+                    <p><strong>Duração:</strong> ${a.duration}</p>
+                    <p><strong>Distância:</strong> ${a.distance} km</p>
+                    <p><strong>Ritmo:</strong> ${a.pace}</p>
+                    <p><strong>Intensidade:</strong> ${a.intensity}</p>
+                `;
+                historyContainer.appendChild(div);
+            });
+        }
+    </script>
+</body>
+</html>

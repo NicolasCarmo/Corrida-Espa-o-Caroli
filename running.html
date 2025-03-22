@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RunTracker - Corrida</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏃 Em Movimento</h1>
+            <div class="user-info" id="currentUser"></div>
+        </header>
+
+        <main class="tracking-interface">
+            <div class="stats">
+                <div class="stat-box">
+                    <span class="stat-value" id="timer">00:00:00</span>
+                    <span class="stat-label">Tempo</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-value" id="distance">0.00</span>
+                    <span class="stat-label">KM</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-value" id="intensity">--</span>
+                    <span class="stat-label">Intensidade</span>
+                </div>
+            </div>
+
+            <button id="startStopBtn" class="big-button">▶ Iniciar Corrida</button>
+        </main>
+    </div>
+    <script src="config.js" type="module"></script>
+    <script src="app.js" type="module"></script>
+</body>
+</html>

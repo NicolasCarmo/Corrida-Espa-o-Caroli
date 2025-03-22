@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RunTracker - Admin</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔒 Área Admin</h1>
+            <button id="logoutAdmin">Sair</button>
+        </header>
+
+        <main class="admin-panel">
+            <div id="adminLogin">
+                <input type="password" id="adminPassword" placeholder="Senha de administrador">
+                <button id="loginAdmin">Acessar</button>
+            </div>
+            
+            <div id="userList" class="hidden">
+                <h2>Usuários Cadastrados</h2>
+                <div id="usersContainer"></div>
+            </div>
+        </main>
+    </div>
+    <script src="config.js" type="module"></script>
+    <script src="app.js" type="module"></script>
+</body>
+</html>

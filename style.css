@@ -1,0 +1,139 @@
+/* style.css - Estilo responsivo e limpo para RunTracker com tema verde claro e branco */
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #e6f8ea; /* Verde claro */
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container {
+    width: 100%;
+    max-width: 400px;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+header h1 {
+    font-size: 1.8rem;
+    color: #2e8b57; /* Verde médio */
+    margin: 0.2rem 0;
+}
+
+header p.address {
+    font-size: 0.9rem;
+    color: #555;
+    margin-top: 0.5rem;
+    line-height: 1.4;
+}
+
+.auth-forms form,
+.admin-panel,
+.tracking-interface {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+input, button {
+    padding: 0.8rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+button {
+    background-color: #2e8b57; /* Verde médio */
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+button:hover {
+    background-color: #267347;
+}
+
+label {
+    font-weight: 500;
+    margin-bottom: -0.5rem;
+}
+
+.user-info {
+    font-size: 1rem;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 0.5rem;
+    color: #555;
+}
+
+.stats {
+    display: flex;
+    justify-content: space-around;
+    margin: 1rem 0;
+}
+
+.stat-box {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #2e8b57;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.big-button {
+    font-size: 1.2rem;
+    padding: 1rem;
+}
+
+.user-card {
+    background: #f0f4f8;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.activity {
+    background: #e9eef3;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.hidden {
+    display: none;
+}
+
+.admin-login {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+@media (max-width: 500px) {
+    .container {
+        padding: 1rem;
+    }
+    header h1 {
+        font-size: 1.5rem;
+    }
+}

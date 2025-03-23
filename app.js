@@ -1,22 +1,35 @@
 import { ADMIN_PASSWORD } from './config.js';
 
 let users = JSON.parse(localStorage.getItem('runtracker_users')) || [];
-let currentUser = null;
+let currentUser = JSON.parse(localStorage.getItem('runtracker_current')) || null;
 let isRunning = false;
 let startTime, timerInterval, distanceInterval;
+let gpsWatchId = null;
+let gpsTrack = [];
 let selectedGoal = 0;
 let selectedIntensity = '--';
+
+const modoCorrida = JSON.parse(localStorage.getItem('modoCorrida')) || { tipo: 'livre' };
 
 function navigateTo(page) {
     window.location.href = page;
 }
 
-// Redirecionamento automático para usuários já cadastrados
-if (window.location.pathname.includes('index.html') || window.location.pathname === '/' || window.location.pathname === '/index') {
-    if (users.length > 0) {
-        currentUser = users[users.length - 1];
-        navigateTo('tela_corrida.html');
-    }
+// LOGIN por email
+if (document.getElementById('loginForm')) {
+    document.getElementById('loginForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const user = users.find(u => u.email === email);
+
+        if (user) {
+            currentUser = user;
+            localStorage.setItem('runtracker_current', JSON.stringify(currentUser));
+            navigateTo('tela_corrida_opcoes.html');
+        } else {
+            alert('E-mail não encontrado. Cadastre-se.');
+        }
+    });
 }
 
 // Cadastro
@@ -27,20 +40,22 @@ if (document.getElementById('registrationForm')) {
         const user = {
             id: Date.now(),
             name: document.getElementById('name').value,
+            email: document.getElementById('email').value,
             height: parseInt(document.getElementById('height').value),
             weight: parseInt(document.getElementById('weight').value),
             activities: []
         };
 
-        if (users.some(u => u.name === user.name)) {
-            alert('Usuário já cadastrado!');
+        if (users.some(u => u.email === user.email)) {
+            alert('E-mail já cadastrado! Use a opção de login.');
             return;
         }
 
         users.push(user);
         localStorage.setItem('runtracker_users', JSON.stringify(users));
         currentUser = user;
-        navigateTo('tela_corrida.html');
+        localStorage.setItem('runtracker_current', JSON.stringify(currentUser));
+        navigateTo('tela_corrida_opcoes.html');
     });
 }
 
@@ -50,22 +65,13 @@ if (document.getElementById('startStopBtn')) {
     const timer = document.getElementById('timer');
     const distance = document.getElementById('distance');
     const pace = document.getElementById('pace');
+    const distBar = document.getElementById('distProgress');
+    const timeBar = document.getElementById('timeProgress');
 
-    const goalSelect = document.getElementById('goalDistance');
-    const intensityButtons = document.querySelectorAll('.intensity-btn');
-
-    currentUser = users[users.length - 1];
-    document.getElementById('currentUser').textContent = currentUser.name;
-
-    intensityButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            selectedIntensity = btn.dataset.value;
-        });
-    });
+    document.getElementById('currentUser').textContent = currentUser?.name || '';
 
     btn.addEventListener('click', () => {
         if (!isRunning) {
-            selectedGoal = parseFloat(goalSelect.value);
             startTracking();
         } else {
             stopTracking();
@@ -76,38 +82,56 @@ if (document.getElementById('startStopBtn')) {
         isRunning = true;
         btn.textContent = '⏹ Parar Corrida';
         startTime = Date.now();
-
+        gpsTrack = [];
         let km = 0;
+
+        if (navigator.geolocation) {
+            gpsWatchId = navigator.geolocation.watchPosition(
+                (pos) => gpsTrack.push({ lat: pos.coords.latitude, lng: pos.coords.longitude, timestamp: pos.timestamp }),
+                (err) => console.error('Erro GPS:', err),
+                { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+            );
+        }
+
         timerInterval = setInterval(() => {
             const elapsed = Date.now() - startTime;
+            const minutes = elapsed / 1000 / 60;
             timer.textContent = new Date(elapsed).toISOString().substr(11, 8);
+
+            if (modoCorrida.tipo !== 'livre' && modoCorrida.tempo) {
+                const progress = Math.min((minutes / modoCorrida.tempo) * 100, 100);
+                if (timeBar) timeBar.style.width = progress + '%';
+            }
         }, 1000);
 
         distanceInterval = setInterval(() => {
             km += 0.01;
             distance.textContent = km.toFixed(2);
+
             const minutes = (Date.now() - startTime) / 1000 / 60;
             const paceValue = minutes / km;
             pace.textContent = isFinite(paceValue) ? paceValue.toFixed(2) + ' min/km' : '--';
 
-            // Comandos de voz baseados no ritmo
             if (paceValue < 4.5) speak("Diminua o ritmo");
             else if (paceValue > 7) speak("Acelere o ritmo");
 
-            if (selectedGoal > 0 && km >= selectedGoal) {
-                clearInterval(timerInterval);
-                clearInterval(distanceInterval);
-                speak('Parabéns! Você alcançou sua meta. Deseja continuar mais um pouco?');
-                setTimeout(() => {
-                    if (confirm('Deseja continuar a corrida por mais 500 metros?')) {
-                        selectedGoal += 0.5;
-                        startTime = Date.now();
-                        startTracking();
-                    } else {
-                        stopTracking();
-                        speak('Excelente esforço! Agora descanse e hidrate-se.');
-                    }
-                }, 1000);
+            if (modoCorrida.tipo !== 'livre' && modoCorrida.km) {
+                const progress = Math.min((km / modoCorrida.km) * 100, 100);
+                if (distBar) distBar.style.width = progress + '%';
+            }
+
+            if (modoCorrida.tipo === 'tempo' && km >= modoCorrida.km) {
+                const minutos = (Date.now() - startTime) / 1000 / 60;
+                if (minutos <= modoCorrida.tempo) speak('Desafio concluído com sucesso!');
+                else speak('Você concluiu, mas ultrapassou o tempo.');
+                stopTracking();
+            }
+
+            if (modoCorrida.tipo === 'personalizado' && km >= modoCorrida.km) {
+                const minutos = (Date.now() - startTime) / 1000 / 60;
+                if (minutos <= modoCorrida.tempo) speak(`Você completou o desafio \"${modoCorrida.nome}\"! Parabéns!`);
+                else speak(`Desafio \"${modoCorrida.nome}\" concluído, mas fora do tempo.`);
+                stopTracking();
             }
         }, 3000);
     }
@@ -118,16 +142,30 @@ if (document.getElementById('startStopBtn')) {
         clearInterval(timerInterval);
         clearInterval(distanceInterval);
 
+        if (gpsWatchId !== null) {
+            navigator.geolocation.clearWatch(gpsWatchId);
+            gpsWatchId = null;
+        }
+
         const activity = {
             date: new Date().toLocaleString(),
-            duration: timer.textContent,
-            distance: distance.textContent,
-            pace: pace.textContent,
-            intensity: selectedIntensity
+            duration: document.getElementById('timer').textContent,
+            distance: document.getElementById('distance').textContent,
+            pace: document.getElementById('pace').textContent,
+            intensity: selectedIntensity,
+            route: gpsTrack,
+            tipo: modoCorrida.tipo,
+            desafio: modoCorrida.nome || null
         };
 
-        currentUser.activities.push(activity);
-        localStorage.setItem('runtracker_users', JSON.stringify(users));
+        const idx = users.findIndex(u => u.email === currentUser.email);
+        if (idx !== -1) {
+            users[idx].activities.push(activity);
+            localStorage.setItem('runtracker_users', JSON.stringify(users));
+        }
+
+        localStorage.removeItem('modoCorrida');
+        window.location.href = 'tela_fim_corrida.html';
     }
 
     function speak(text) {
@@ -138,7 +176,7 @@ if (document.getElementById('startStopBtn')) {
     }
 }
 
-// Admin
+// Admin login
 if (document.getElementById('loginAdmin')) {
     document.getElementById('loginAdmin').addEventListener('click', () => {
         const password = document.getElementById('adminPassword').value;
@@ -169,10 +207,13 @@ function loadUsers() {
             <p>Corridas realizadas: ${user.activities.length}</p>
             ${user.activities.map(a => `
                 <div class="activity">
-                    <p>📅 ${a.date} - ${a.duration} - ${a.distance}km - ${a.pace} (${a.intensity})</p>
+                    <p>📅 ${a.date} - ${a.duration} - ${a.distance}km - ${a.pace} (${a.intensity || '--'})</p>
+                    <p>Rota salva: ${a.route?.length > 0 ? 'Sim' : 'Não'}</p>
                 </div>
             `).join('')}
         `;
         container.appendChild(userDiv);
     });
 }
+
+

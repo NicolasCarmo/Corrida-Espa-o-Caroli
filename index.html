@@ -3,18 +3,12 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>RunTracker - Boas-vindas</title>
-
-    <!-- Manifesto e tema PWA -->
+    <title>Corrida Espaço Caroli - Início</title>
     <meta name="theme-color" content="#2e8b57" />
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" sizes="192x192" href="icons/icon-192.png" />
     <link rel="apple-touch-icon" href="icons/icon-512.png" />
-
-    <!-- Estilo principal -->
     <link rel="stylesheet" href="style.css" />
-
-    <!-- Service Worker -->
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('service-worker.js')
@@ -26,8 +20,8 @@
 <body class="welcome">
     <div class="container">
         <header>
-            <h1>🏃‍♂️ Bem-vindo, corredor!</h1>
-            <p>Vamos iniciar?</p>
+            <h1>🏃‍♂️ Corrida Espaço Caroli</h1>
+            <p>Bem-vindo corredor!</p>
             <p class="address">
                 Espaço Caroli<br />
                 Rua Beija Flor, 2000 - Cabralzinho
@@ -35,19 +29,26 @@
         </header>
 
         <main class="auth-forms">
+            <form id="loginForm">
+                <h2>Entrar</h2>
+                <label for="loginEmail">E-mail cadastrado</label>
+                <input type="email" id="loginEmail" placeholder="Digite seu e-mail" required />
+                <button type="submit">Entrar</button>
+            </form>
+
+            <hr />
+
             <form id="registrationForm">
                 <h2>Cadastro</h2>
-
                 <label for="name">Nome completo</label>
                 <input type="text" id="name" placeholder="Digite seu nome" required />
-
+                <label for="email">E-mail</label>
+                <input type="email" id="email" placeholder="Digite seu e-mail" required />
                 <label for="height">Altura (cm)</label>
                 <input type="number" id="height" placeholder="Ex: 175" min="100" max="250" required />
-
                 <label for="weight">Peso (kg)</label>
                 <input type="number" id="weight" placeholder="Ex: 70" min="30" max="200" required />
-
-                <button type="submit">Iniciar Corrida</button>
+                <button type="submit">Cadastrar</button>
             </form>
 
             <div class="admin-login">
@@ -61,4 +62,5 @@
     <script src="app.js" type="module"></script>
 </body>
 </html>
+
 

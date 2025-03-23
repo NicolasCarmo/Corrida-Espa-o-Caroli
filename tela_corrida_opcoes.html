@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Corrida Espaço Caroli - Opções</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🚀 Escolha seu Desafio</h1>
+      <p id="userName"></p>
+    </header>
+
+    <main>
+      <button class="big-button" onclick="startCorridaLivre()">🏃 Corrida Livre</button>
+      <button class="big-button" onclick="startDesafioTempo()">⏱️ Desafio de Tempo</button>
+      <button class="big-button" onclick="criarDesafio()">🎯 Criar Desafio Personalizado</button>
+    </main>
+  </div>
+
+  <script>
+    const currentUser = JSON.parse(localStorage.getItem("runtracker_current"));
+    if (!currentUser) {
+      window.location.href = "index.html";
+    } else {
+      document.getElementById("userName").textContent = `Olá, ${currentUser.name}`;
+    }
+
+    function startCorridaLivre() {
+      localStorage.setItem("modoCorrida", JSON.stringify({ tipo: "livre" }));
+      window.location.href = "tela_corrida.html";
+    }
+
+    function startDesafioTempo() {
+      const km = prompt("Quantos km você quer correr?");
+      const tempo = prompt("Em quantos minutos você quer completar?");
+      if (km && tempo) {
+        localStorage.setItem("modoCorrida", JSON.stringify({ tipo: "tempo", km: parseFloat(km), tempo: parseFloat(tempo) }));
+        window.location.href = "tela_corrida.html";
+      }
+    }
+
+    function criarDesafio() {
+      const nome = prompt("Nome do desafio:");
+      const km = prompt("Distância (km):");
+      const tempo = prompt("Tempo (min):");
+      if (nome && km && tempo) {
+        localStorage.setItem("modoCorrida", JSON.stringify({ tipo: "personalizado", nome, km: parseFloat(km), tempo: parseFloat(tempo) }));
+        window.location.href = "tela_corrida.html";
+      }
+    }
+  </script>
+</body>
+</html>

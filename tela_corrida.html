@@ -1,162 +1,81 @@
-/* style.css - Estilo responsivo e limpo para RunTracker com tema verde claro e branco */
-
-body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #e6f8ea; /* Verde claro */
-    color: #333;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-}
-
-.container {
-    width: 100%;
-    max-width: 400px;
-    background: #ffffff;
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-}
-
-header {
-    text-align: center;
-    margin-bottom: 1.5rem;
-}
-
-header h1 {
-    font-size: 1.8rem;
-    color: #2e8b57; /* Verde médio */
-    margin: 0.2rem 0;
-}
-
-header p.address {
-    font-size: 0.9rem;
-    color: #555;
-    margin-top: 0.5rem;
-    line-height: 1.4;
-}
-
-.auth-forms form,
-.admin-panel,
-.tracking-interface {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-input, button, select {
-    padding: 0.8rem;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-size: 1rem;
-}
-
-button {
-    background-color: #2e8b57; /* Verde médio */
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background 0.3s ease;
-}
-
-button:hover {
-    background-color: #267347;
-}
-
-label {
-    font-weight: 500;
-    margin-bottom: -0.5rem;
-}
-
-.user-info {
-    font-size: 1rem;
-    font-weight: bold;
-    text-align: center;
-    margin-top: 0.5rem;
-    color: #555;
-}
-
-.stats {
-    display: flex;
-    justify-content: space-around;
-    margin: 1rem 0;
-}
-
-.stat-box {
-    text-align: center;
-}
-
-.stat-value {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #2e8b57;
-}
-
-.stat-label {
-    font-size: 0.9rem;
-    color: #666;
-}
-
-.big-button {
-    font-size: 1.2rem;
-    padding: 1rem;
-}
-
-.user-card {
-    background: #f0f4f8;
-    border-radius: 8px;
-    padding: 1rem;
-    margin-bottom: 1rem;
-}
-
-.activity {
-    background: #e9eef3;
-    padding: 0.5rem;
-    margin-top: 0.5rem;
-    border-radius: 6px;
-    font-size: 0.9rem;
-}
-
-.hidden {
-    display: none;
-}
-
-.admin-login {
-    text-align: center;
-    margin-top: 2rem;
-}
-
-.intensity-options {
-    display: flex;
-    justify-content: space-between;
-    gap: 0.5rem;
-}
-
-.intensity-btn {
-    flex: 1;
-    padding: 0.6rem;
-    font-size: 0.9rem;
-    background-color: #b5e7c0;
-    color: #2e8b57;
-    border: none;
-    border-radius: 6px;
-    font-weight: bold;
-    transition: background 0.2s ease;
-}
-
-.intensity-btn:hover {
-    background-color: #a3d7b1;
-}
-
-@media (max-width: 500px) {
-    .container {
-        padding: 1rem;
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Corrida Espaço Caroli - Corrida</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .progress-bar {
+      height: 12px;
+      background: #ccc;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+      overflow: hidden;
     }
-    header h1 {
-        font-size: 1.5rem;
+    .progress {
+      height: 100%;
+      background-color: #2e8b57;
+      width: 0;
+      transition: width 0.5s;
     }
-}
+    .desafio-info {
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #2e8b57;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🏃 Correndo com você</h1>
+      <div class="user-info" id="currentUser"></div>
+    </header>
 
+    <main class="tracking-interface">
+      <div class="desafio-info" id="desafioNome"></div>
+
+      <div class="progress-bar"><div id="distProgress" class="progress"></div></div>
+      <div class="progress-bar"><div id="timeProgress" class="progress"></div></div>
+
+      <div class="stats">
+        <div class="stat-box">
+          <span class="stat-value" id="timer">00:00:00</span>
+          <span class="stat-label">Tempo</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-value" id="distance">0.00</span>
+          <span class="stat-label">KM</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-value" id="pace">--</span>
+          <span class="stat-label">Ritmo</span>
+        </div>
+      </div>
+
+      <button id="startStopBtn" class="big-button">▶ Iniciar Corrida</button>
+    </main>
+  </div>
+
+  <script src="config.js" type="module"></script>
+  <script src="app.js" type="module"></script>
+  <script>
+    const currentUser = JSON.parse(localStorage.getItem('runtracker_current'));
+    const modo = JSON.parse(localStorage.getItem('modoCorrida')) || { tipo: 'livre' };
+
+    if (!currentUser) {
+      window.location.href = 'index.html';
+    } else {
+      document.getElementById('currentUser').textContent = currentUser.name;
+    }
+
+    // Mostrar nome do desafio (se existir)
+    const desafioNome = document.getElementById('desafioNome');
+    if (modo.tipo === 'tempo') desafioNome.textContent = `Desafio: ${modo.km}km em ${modo.tempo} min`;
+    if (modo.tipo === 'personalizado') desafioNome.textContent = `Desafio: ${modo.nome} - ${modo.km}km em ${modo.tempo} min`;
+    if (modo.tipo === 'livre') desafioNome.textContent = `Modo Livre`;
+  </script>
+</body>
+</html>

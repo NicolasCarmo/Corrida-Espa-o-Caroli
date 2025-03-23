@@ -11,7 +11,15 @@ function navigateTo(page) {
     window.location.href = page;
 }
 
-// Registro de usuário
+// Redirecionamento automático para usuários já cadastrados
+if (window.location.pathname.includes('index.html') || window.location.pathname === '/' || window.location.pathname === '/index') {
+    if (users.length > 0) {
+        currentUser = users[users.length - 1];
+        navigateTo('tela_corrida.html');
+    }
+}
+
+// Cadastro
 if (document.getElementById('registrationForm')) {
     document.getElementById('registrationForm').addEventListener('submit', (e) => {
         e.preventDefault();
@@ -82,6 +90,10 @@ if (document.getElementById('startStopBtn')) {
             const paceValue = minutes / km;
             pace.textContent = isFinite(paceValue) ? paceValue.toFixed(2) + ' min/km' : '--';
 
+            // Comandos de voz baseados no ritmo
+            if (paceValue < 4.5) speak("Diminua o ritmo");
+            else if (paceValue > 7) speak("Acelere o ritmo");
+
             if (selectedGoal > 0 && km >= selectedGoal) {
                 clearInterval(timerInterval);
                 clearInterval(distanceInterval);
@@ -108,9 +120,9 @@ if (document.getElementById('startStopBtn')) {
 
         const activity = {
             date: new Date().toLocaleString(),
-            duration: document.getElementById('timer').textContent,
-            distance: document.getElementById('distance').textContent,
-            pace: document.getElementById('pace').textContent,
+            duration: timer.textContent,
+            distance: distance.textContent,
+            pace: pace.textContent,
             intensity: selectedIntensity
         };
 

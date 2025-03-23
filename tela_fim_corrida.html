@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Corrida Finalizada</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { text-align: center; font-family: sans-serif; background-color: #e6f8ea; padding: 2rem; }
+    h1 { color: #2e8b57; font-size: 2rem; }
+    .stats { margin-top: 1rem; font-size: 1.2rem; }
+    .button-area { margin-top: 2rem; display: flex; flex-direction: column; gap: 1rem; align-items: center; }
+    button {
+      padding: 1rem 2rem;
+      font-size: 1rem;
+      background-color: #2e8b57;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎉 Parabéns, corredor!</h1>
+  <p>Você concluiu sua corrida. Aqui estão seus dados:</p>
+
+  <div class="stats" id="finalStats"></div>
+
+  <div class="button-area">
+    <button onclick="window.location.href='tela_corrida_opcoes.html'">🏁 Voltar ao Menu</button>
+    <button onclick="window.location.href='tela_corrida.html'">🔁 Nova Corrida</button>
+  </div>
+
+  <script>
+    const user = JSON.parse(localStorage.getItem("runtracker_current"));
+    const statsDiv = document.getElementById("finalStats");
+
+    if (user && user.activities.length > 0) {
+      const ultima = user.activities[user.activities.length - 1];
+      statsDiv.innerHTML = `
+        <p><strong>Data:</strong> ${ultima.date}</p>
+        <p><strong>Duração:</strong> ${ultima.duration}</p>
+        <p><strong>Distância:</strong> ${ultima.distance} km</p>
+        <p><strong>Ritmo:</strong> ${ultima.pace}</p>
+        <p><strong>Tipo:</strong> ${ultima.tipo}</p>
+        ${ultima.desafio ? `<p><strong>Desafio:</strong> ${ultima.desafio}</p>` : ''}
+      `;
+    } else {
+      statsDiv.innerHTML = '<p>Nenhuma corrida registrada.</p>';
+    }
+  </script>
+</body>
+</html>

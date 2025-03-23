@@ -81,59 +81,82 @@ if (document.getElementById('startStopBtn')) {
     function startTracking() {
         isRunning = true;
         btn.textContent = '⏹ Parar Corrida';
-        startTime = Date.now();
         gpsTrack = [];
-        let km = 0;
 
-        if (navigator.geolocation) {
-            gpsWatchId = navigator.geolocation.watchPosition(
-                (pos) => gpsTrack.push({ lat: pos.coords.latitude, lng: pos.coords.longitude, timestamp: pos.timestamp }),
-                (err) => console.error('Erro GPS:', err),
-                { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
-            );
-        }
+        speak("Prepare-se. Em 5, 4, 3, 2, 1... Vai!");
 
-        timerInterval = setInterval(() => {
-            const elapsed = Date.now() - startTime;
-            const minutes = elapsed / 1000 / 60;
-            timer.textContent = new Date(elapsed).toISOString().substr(11, 8);
+        setTimeout(() => {
+            startTime = Date.now();
+            let km = 0;
 
-            if (modoCorrida.tipo !== 'livre' && modoCorrida.tempo) {
-                const progress = Math.min((minutes / modoCorrida.tempo) * 100, 100);
-                if (timeBar) timeBar.style.width = progress + '%';
-            }
-        }, 1000);
-
-        distanceInterval = setInterval(() => {
-            km += 0.01;
-            distance.textContent = km.toFixed(2);
-
-            const minutes = (Date.now() - startTime) / 1000 / 60;
-            const paceValue = minutes / km;
-            pace.textContent = isFinite(paceValue) ? paceValue.toFixed(2) + ' min/km' : '--';
-
-            if (paceValue < 4.5) speak("Diminua o ritmo");
-            else if (paceValue > 7) speak("Acelere o ritmo");
-
-            if (modoCorrida.tipo !== 'livre' && modoCorrida.km) {
-                const progress = Math.min((km / modoCorrida.km) * 100, 100);
-                if (distBar) distBar.style.width = progress + '%';
+            if (navigator.geolocation) {
+                gpsWatchId = navigator.geolocation.watchPosition(
+                    (pos) => gpsTrack.push({ lat: pos.coords.latitude, lng: pos.coords.longitude, timestamp: pos.timestamp }),
+                    (err) => console.error('Erro GPS:', err),
+                    { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+                );
             }
 
-            if (modoCorrida.tipo === 'tempo' && km >= modoCorrida.km) {
-                const minutos = (Date.now() - startTime) / 1000 / 60;
-                if (minutos <= modoCorrida.tempo) speak('Desafio concluído com sucesso!');
-                else speak('Você concluiu, mas ultrapassou o tempo.');
-                stopTracking();
-            }
+            timerInterval = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                const minutes = elapsed / 1000 / 60;
+                timer.textContent = new Date(elapsed).toISOString().substr(11, 8);
 
-            if (modoCorrida.tipo === 'personalizado' && km >= modoCorrida.km) {
-                const minutos = (Date.now() - startTime) / 1000 / 60;
-                if (minutos <= modoCorrida.tempo) speak(`Você completou o desafio \"${modoCorrida.nome}\"! Parabéns!`);
-                else speak(`Desafio \"${modoCorrida.nome}\" concluído, mas fora do tempo.`);
-                stopTracking();
-            }
-        }, 3000);
+                if (modoCorrida.tipo !== 'livre' && modoCorrida.tempo) {
+                    const progress = Math.min((minutes / modoCorrida.tempo) * 100, 100);
+                    if (timeBar) timeBar.style.width = progress + '%';
+                }
+            }, 1000);
+
+            distanceInterval = setInterval(() => {
+                km += 0.01;
+                distance.textContent = km.toFixed(2);
+
+                const minutes = (Date.now() - startTime) / 1000 / 60;
+                const paceValue = minutes / km;
+                pace.textContent = isFinite(paceValue) ? paceValue.toFixed(2) + ' min/km' : '--';
+
+                // Frases motivacionais aleatórias
+                const frases = [
+                    "Você está indo bem, continue!",
+                    "Mantenha o foco!",
+                    "Respire fundo e mantenha o ritmo.",
+                    "Excelente trabalho até aqui!",
+                    "Vamos nessa, falta pouco!"
+                ];
+                if (Math.random() < 0.2) {
+                    const index = Math.floor(Math.random() * frases.length);
+                    speak(frases[index]);
+                }
+
+                if (modoCorrida.tipo !== 'livre') {
+                    if (paceValue > 7) {
+                        speak("Você está abaixo da média. Aumente o ritmo!");
+                    } else if (paceValue < 4.5) {
+                        speak("Diminua o ritmo");
+                    }
+                }
+
+                if (modoCorrida.tipo !== 'livre' && modoCorrida.km) {
+                    const progress = Math.min((km / modoCorrida.km) * 100, 100);
+                    if (distBar) distBar.style.width = progress + '%';
+                }
+
+                if (modoCorrida.tipo === 'tempo' && km >= modoCorrida.km) {
+                    const minutos = (Date.now() - startTime) / 1000 / 60;
+                    if (minutos <= modoCorrida.tempo) speak('Desafio concluído com sucesso!');
+                    else speak('Você concluiu, mas ultrapassou o tempo.');
+                    stopTracking();
+                }
+
+                if (modoCorrida.tipo === 'personalizado' && km >= modoCorrida.km) {
+                    const minutos = (Date.now() - startTime) / 1000 / 60;
+                    if (minutos <= modoCorrida.tempo) speak(`Você completou o desafio \"${modoCorrida.nome}\"! Parabéns!`);
+                    else speak(`Desafio \"${modoCorrida.nome}\" concluído, mas fora do tempo.`);
+                    stopTracking();
+                }
+            }, 3000);
+        }, 5000); // espera 5 segundos para começar
     }
 
     function stopTracking() {

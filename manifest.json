@@ -1,7 +1,7 @@
 {
     "name": "Corrida Espaço Caroli",
     "short_name": "Espaço Caroli",
-    "start_url": "tela_apresentacao.html",
+    "start_url": "index.html",
     "display": "standalone",
     "background_color": "#e6f8ea",
     "theme_color": "#2e8b57",

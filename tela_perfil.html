@@ -66,16 +66,16 @@
     const users = JSON.parse(localStorage.getItem('runtracker_users')) || [];
 
     window.cadastrar = () => {
-      const name = document.getElementById('name').value;
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim().toLowerCase();
+      const password = document.getElementById('password').value.trim();
 
       if (!name || !email || !password) {
         alert("Preencha todos os campos!");
         return;
       }
 
-      if (users.some(u => u.email === email)) {
+      if (users.some(u => u.email.toLowerCase() === email)) {
         alert("E-mail já cadastrado! Use a tela inicial para entrar.");
         return;
       }
@@ -98,5 +98,6 @@
   </script>
 </body>
 </html>
+
 
 

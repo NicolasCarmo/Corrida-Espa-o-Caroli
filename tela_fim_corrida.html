@@ -3,46 +3,86 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Corrida Finalizada</title>
+  <title>Corrida Espaço Caroli - Fim da Corrida</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      background-color: #c3dbc5;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 2rem;
+    }
+    h1 {
+      font-size: 1.4rem;
+      color: #222;
+      margin-bottom: 2rem;
+    }
+    .info-box {
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+      background-color: #eee;
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      max-width: 300px;
+      margin: 0.5rem auto;
+      font-weight: bold;
+    }
+    .btn-final {
+      display: block;
+      background-color: #6bc242;
+      color: white;
+      font-weight: bold;
+      padding: 1rem;
+      border-radius: 30px;
+      margin: 1.2rem auto;
+      width: 90%;
+      max-width: 320px;
+      border: none;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>🎉 Parabéns, corredor!</h1>
-      <p>Você concluiu sua corrida. Aqui estão seus dados:</p>
-    </header>
+  <h1>Histórico de Corridas</h1>
 
-    <main class="tracking-interface" id="resultado"></main>
-
-    <div class="finish-buttons">
-      <button onclick="window.location.href='tela_corrida_opcoes.html'" class="big-button">🏁 Voltar ao Menu</button>
-      <button onclick="window.location.href='tela_corrida.html'" class="big-button">🔁 Nova Corrida</button>
-    </div>
+  <div class="info-box">
+    <span>Última Corrida</span>
+    <span id="dataCorrida">Data</span>
+  </div>
+  <div class="info-box">
+    <span>Duração</span>
+    <span id="duracaoCorrida">Tempo</span>
+  </div>
+  <div class="info-box">
+    <span>Distância</span>
+    <span id="distanciaCorrida">KM</span>
   </div>
 
+  <button class="btn-final" onclick="verMapa()">📍 Percurso da Última Corrida</button>
+  <button class="btn-final" onclick="verHistoricoCompleto()">📖 Histórico Completo das suas Corridas</button>
+
   <script type="module">
-    const currentUser = JSON.parse(localStorage.getItem("runtracker_current"));
-    const users = JSON.parse(localStorage.getItem("runtracker_users")) || [];
-    const user = users.find(u => u.email === currentUser?.email);
+    const users = JSON.parse(localStorage.getItem('runtracker_users')) || [];
+    const user = JSON.parse(localStorage.getItem('runtracker_current'));
+    const current = users.find(u => u.email === user.email);
+    const ultima = current?.activities?.slice(-1)[0];
 
-    const resultadoDiv = document.getElementById("resultado");
-
-    if (!user || !user.activities || user.activities.length === 0) {
-      resultadoDiv.innerHTML = "<p>Nenhuma corrida registrada.</p>";
-    } else {
-      const ultima = user.activities[user.activities.length - 1];
-
-      resultadoDiv.innerHTML = `
-        <div class="user-card">
-          <p><strong>📅 Data:</strong> ${ultima.date}</p>
-          <p><strong>⏱️ Duração:</strong> ${ultima.duration}</p>
-          <p><strong>📏 Distância:</strong> ${ultima.distance} km</p>
-          <p><strong>🏃 Ritmo:</strong> ${ultima.pace}</p>
-          <p><strong>🔥 Intensidade:</strong> ${ultima.intensity || '--'}</p>
-        </div>
-      `;
+    if (ultima) {
+      document.getElementById('dataCorrida').textContent = ultima.date;
+      document.getElementById('duracaoCorrida').textContent = ultima.duration;
+      document.getElementById('distanciaCorrida').textContent = `${ultima.distance} km`;
     }
+
+    window.verMapa = () => {
+      window.location.href = 'mapa_trajeto.html';
+    };
+
+    window.verHistoricoCompleto = () => {
+      window.location.href = 'tela_historico.html';
+    };
   </script>
 </body>
 </html>
+

@@ -3,69 +3,57 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Corrida Espaço Caroli - Opções</title>
+  <title>Escolha seu Desafio</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    .desafio-opcoes {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    .desafio-btn {
+      background-color: #6bc242;
+      border: none;
+      color: white;
+      font-size: 1.2rem;
+      font-weight: bold;
+      padding: 1rem;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .desafio-btn:hover {
+      background-color: #5aaa34;
+    }
+    h1 {
+      text-align: center;
+      color: #2e8b57;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>🚀 Escolha seu Desafio</h1>
-      <p id="userName"></p>
+      <h1>🏃‍♂️ Escolha seu Desafio</h1>
     </header>
 
-    <main>
-      <button class="big-button" onclick="startCorridaLivre()">🏃 Corrida Livre</button>
-
-      <h3>🏁 Desafios por Nível</h3>
-      <div class="auth-forms">
-        <button class="intensity-btn" onclick="desafioNivel('iniciante')">👟 Iniciante</button>
-        <button class="intensity-btn" onclick="desafioNivel('intermediario')">🏃 Intermediário</button>
-        <button class="intensity-btn" onclick="desafioNivel('profissional')">🔥 Profissional</button>
-      </div>
-
-      <button class="big-button" onclick="criarDesafio()">🎯 Criar Desafio Personalizado</button>
+    <main class="desafio-opcoes">
+      <button class="desafio-btn" onclick="startCorridaLivre()">✔ Corrida Livre</button>
+      <button class="desafio-btn" onclick="window.location.href='tela_desafio_tempo.html'">⏱ Desafio de Tempo</button>
+      <button class="desafio-btn" onclick="window.location.href='tela_desafio_personalizado.html'">⚖️ Desafio Personalizado</button>
     </main>
   </div>
 
   <script>
-    const currentUser = JSON.parse(localStorage.getItem("runtracker_current"));
-    if (!currentUser) {
-      window.location.href = "index.html";
-    } else {
-      document.getElementById("userName").textContent = `Olá, ${currentUser.name}`;
-    }
+    const user = JSON.parse(localStorage.getItem("runtracker_current"));
+    if (!user) window.location.href = "index.html";
 
     function startCorridaLivre() {
       localStorage.setItem("modoCorrida", JSON.stringify({ tipo: "livre" }));
       window.location.href = "tela_corrida.html";
     }
-
-    function desafioNivel(nivel) {
-      let desafio;
-      switch (nivel) {
-        case 'iniciante':
-          desafio = { tipo: 'tempo', nome: 'Iniciante', km: 2, tempo: 20 };
-          break;
-        case 'intermediario':
-          desafio = { tipo: 'tempo', nome: 'Intermediário', km: 5, tempo: 30 };
-          break;
-        case 'profissional':
-          desafio = { tipo: 'tempo', nome: 'Profissional', km: 10, tempo: 45 };
-          break;
-      }
-      localStorage.setItem("modoCorrida", JSON.stringify(desafio));
-      window.location.href = "tela_corrida.html";
-    }
-
-    function criarDesafio() {
-      const nome = prompt("Nome do desafio:");
-      const km = prompt("Distância (km):");
-      const tempo = prompt("Tempo (min):");
-      if (nome && km && tempo) {
-        localStorage.setItem("modoCorrida", JSON.stringify({ tipo: "personalizado", nome, km: parseFloat(km), tempo: parseFloat(tempo) }));
-        window.location.href = "tela_corrida.html";
-      }
-    }
   </script>
 </body>
 </html>
+

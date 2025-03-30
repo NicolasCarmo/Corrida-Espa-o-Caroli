@@ -67,12 +67,9 @@ if (document.getElementById('startStopBtn')) {
     const pace = document.getElementById('pace');
     const distBar = document.getElementById('distProgress');
     const timeBar = document.getElementById('timeProgress');
+    const statusCorrida = document.getElementById('statusCorrida');
 
     document.getElementById('currentUser').textContent = currentUser?.name || '';
-
-    let km = 0;
-    let spoken500 = 0;
-    let spoken1000 = 0;
 
     btn.addEventListener('click', () => {
         if (!isRunning) {
@@ -87,10 +84,32 @@ if (document.getElementById('startStopBtn')) {
         btn.textContent = '⏹ Parar Corrida';
         startTime = Date.now();
         gpsTrack = [];
+        let km = 0;
+        let ultimaPosicao = null;
+        let paradoDesde = Date.now();
 
         if (navigator.geolocation) {
             gpsWatchId = navigator.geolocation.watchPosition(
-                (pos) => gpsTrack.push({ lat: pos.coords.latitude, lng: pos.coords.longitude, timestamp: pos.timestamp }),
+                (pos) => {
+                    const atual = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                    gpsTrack.push({ ...atual, timestamp: pos.timestamp });
+
+                    if (ultimaPosicao) {
+                        const dist = calcularDistancia(ultimaPosicao, atual);
+                        if (dist < 5) {
+                            if (Date.now() - paradoDesde > 10000) {
+                                statusCorrida.textContent = '🚶 Você está parado';
+                                speak('Vamos começar, comece a correr!');
+                                paradoDesde = Date.now();
+                            }
+                        } else {
+                            statusCorrida.textContent = '🏃 Em movimento';
+                            paradoDesde = Date.now();
+                        }
+                    }
+
+                    ultimaPosicao = atual;
+                },
                 (err) => console.error('Erro GPS:', err),
                 { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
             );
@@ -115,29 +134,12 @@ if (document.getElementById('startStopBtn')) {
             const paceValue = minutes / km;
             pace.textContent = isFinite(paceValue) ? paceValue.toFixed(2) + ' min/km' : '--';
 
+            if (paceValue < 4.5) speak("Diminua o ritmo");
+            else if (paceValue > 7) speak("Acelere o ritmo");
+
             if (modoCorrida.tipo !== 'livre' && modoCorrida.km) {
                 const progress = Math.min((km / modoCorrida.km) * 100, 100);
                 if (distBar) distBar.style.width = progress + '%';
-            }
-
-            // A cada 500m
-            if (Math.floor(km * 10) >= (spoken500 + 5)) {
-                spoken500 += 5;
-                speak(`Você já correu ${(spoken500 / 10).toFixed(1)} km.`);
-            }
-
-            // A cada 1km
-            if (Math.floor(km) > spoken1000) {
-                spoken1000 = Math.floor(km);
-                if (modoCorrida.tipo !== 'livre') {
-                    const mediaEsperada = modoCorrida.tempo / modoCorrida.km;
-                    const mediaAtual = minutes / km;
-                    if (mediaAtual <= mediaEsperada) {
-                        speak('Você está indo bem, continue assim!');
-                    } else {
-                        speak('Você está abaixo da média, acelere para bater a meta!');
-                    }
-                }
             }
 
             if (modoCorrida.tipo === 'tempo' && km >= modoCorrida.km) {
@@ -149,8 +151,8 @@ if (document.getElementById('startStopBtn')) {
 
             if (modoCorrida.tipo === 'personalizado' && km >= modoCorrida.km) {
                 const minutos = (Date.now() - startTime) / 1000 / 60;
-                if (minutos <= modoCorrida.tempo) speak(`Você completou o desafio "${modoCorrida.nome}"! Parabéns!`);
-                else speak(`Desafio "${modoCorrida.nome}" concluído, mas fora do tempo.`);
+                if (minutos <= modoCorrida.tempo) speak(`Você completou o desafio \"${modoCorrida.nome}\"! Parabéns!`);
+                else speak(`Desafio \"${modoCorrida.nome}\" concluído, mas fora do tempo.`);
                 stopTracking();
             }
         }, 3000);
@@ -194,6 +196,18 @@ if (document.getElementById('startStopBtn')) {
         utter.lang = 'pt-BR';
         synth.speak(utter);
     }
+
+    function calcularDistancia(p1, p2) {
+        const R = 6371e3; // metros
+        const toRad = deg => deg * Math.PI / 180;
+        const dLat = toRad(p2.lat - p1.lat);
+        const dLon = toRad(p2.lng - p1.lng);
+        const a = Math.sin(dLat/2) ** 2 +
+                  Math.cos(toRad(p1.lat)) * Math.cos(toRad(p2.lat)) *
+                  Math.sin(dLon/2) ** 2;
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    }
 }
 
 // Admin login
@@ -235,5 +249,6 @@ function loadUsers() {
         container.appendChild(userDiv);
     });
 }
+
 
 

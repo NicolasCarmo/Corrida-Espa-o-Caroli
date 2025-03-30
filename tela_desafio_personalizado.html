@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Desafio Personalizado</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .desafio-box {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    input {
+      padding: 0.8rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    .big-button {
+      background-color: #6bc242;
+      font-weight: bold;
+      font-size: 1.1rem;
+      padding: 1rem;
+      border-radius: 30px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📈 Desafio Personalizado</h1>
+      <p>Dê um nome ao seu desafio e defina a meta!</p>
+    </header>
+
+    <main class="desafio-box">
+      <input type="text" id="nome" placeholder="Nome do Desafio" required />
+      <input type="number" id="km" placeholder="Distância (em km)" min="0.5" step="0.1" />
+      <input type="number" id="tempo" placeholder="Tempo (em minutos)" min="1" step="1" />
+      <button class="big-button" onclick="salvarDesafioPersonalizado()">Começar Desafio</button>
+    </main>
+  </div>
+
+  <script>
+    function salvarDesafioPersonalizado() {
+      const nome = document.getElementById('nome').value.trim();
+      const km = parseFloat(document.getElementById('km').value);
+      const tempo = parseFloat(document.getElementById('tempo').value);
+
+      if (!nome || !km || !tempo) {
+        alert('Preencha todos os campos.');
+        return;
+      }
+
+      localStorage.setItem('modoCorrida', JSON.stringify({
+        tipo: 'personalizado',
+        nome,
+        km,
+        tempo
+      }));
+
+      window.location.href = 'tela_corrida.html';
+    }
+  </script>
+</body>
+</html>

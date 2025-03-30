@@ -1,52 +1,84 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RunTracker - Histórico</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Corrida Espaço Caroli - Histórico Completo</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      background-color: #c3dbc5;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 2rem;
+    }
+    h1 {
+      font-size: 1.4rem;
+      color: #222;
+      margin-bottom: 2rem;
+    }
+    .corrida-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      text-align: left;
+      max-width: 400px;
+      margin: 1rem auto;
+    }
+    .corrida-card p {
+      margin: 0.3rem 0;
+      font-size: 0.95rem;
+    }
+    .btn-voltar {
+      background-color: #6bc242;
+      color: white;
+      font-weight: bold;
+      padding: 1rem;
+      border-radius: 30px;
+      margin-top: 2rem;
+      width: 90%;
+      max-width: 320px;
+      border: none;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>📈 Histórico de Corridas</h1>
-            <div class="user-info" id="currentUser"></div>
-        </header>
+  <h1>📖 Histórico de Corridas</h1>
 
-        <main id="historyContainer"></main>
+  <div id="listaCorridas"></div>
 
-        <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 2rem;">
-            <button onclick="window.location.href='tela_corrida.html'" class="big-button">🏃 Voltar à Corrida</button>
-            <button onclick="window.location.href='mapa_trajeto.html'" class="big-button">📍 Ver Trajeto da Última Corrida</button>
-            <button onclick="window.location.href='historico_detalhado.html'" class="big-button">📋 Ver Histórico Detalhado</button>
-        </div>
-    </div>
+  <button class="btn-voltar" onclick="window.location.href='tela_fim_corrida.html'">⬅️ Voltar</button>
 
-    <script type="module">
-        let users = JSON.parse(localStorage.getItem('runtracker_users')) || [];
-        const user = users[users.length - 1];
-        document.getElementById('currentUser').textContent = user.name;
+  <script type="module">
+    const users = JSON.parse(localStorage.getItem('runtracker_users')) || [];
+    const user = JSON.parse(localStorage.getItem('runtracker_current'));
+    const current = users.find(u => u.email === user.email);
 
-        const historyContainer = document.getElementById('historyContainer');
+    const lista = document.getElementById('listaCorridas');
 
-        if (user.activities.length === 0) {
-            historyContainer.innerHTML = '<p>Você ainda não fez nenhuma corrida.</p>';
-        } else {
-            user.activities.slice().reverse().forEach(a => {
-                const div = document.createElement('div');
-                div.className = 'user-card';
-                div.innerHTML = `
-                    <p><strong>Data:</strong> ${a.date}</p>
-                    <p><strong>Duração:</strong> ${a.duration}</p>
-                    <p><strong>Distância:</strong> ${a.distance} km</p>
-                    <p><strong>Ritmo:</strong> ${a.pace}</p>
-                    <p><strong>Intensidade:</strong> ${a.intensity}</p>
-                `;
-                historyContainer.appendChild(div);
-            });
-        }
-    </script>
+    if (current?.activities?.length > 0) {
+      current.activities.slice().reverse().forEach(corrida => {
+        const div = document.createElement('div');
+        div.className = 'corrida-card';
+        div.innerHTML = `
+          <p><strong>Data:</strong> ${corrida.date}</p>
+          <p><strong>Duração:</strong> ${corrida.duration}</p>
+          <p><strong>Distância:</strong> ${corrida.distance} km</p>
+          <p><strong>Ritmo:</strong> ${corrida.pace}</p>
+          <p><strong>Intensidade:</strong> ${corrida.intensity}</p>
+        `;
+        lista.appendChild(div);
+      });
+    } else {
+      lista.innerHTML = '<p>Você ainda não realizou nenhuma corrida.</p>';
+    }
+  </script>
 </body>
 </html>
+
 
 

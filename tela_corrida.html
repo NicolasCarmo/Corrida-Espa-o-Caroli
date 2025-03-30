@@ -3,79 +3,80 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Corrida Espaço Caroli - Corrida</title>
+  <title>Corrida em Andamento</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    .progress-bar {
-      height: 12px;
-      background: #ccc;
-      border-radius: 6px;
-      margin-bottom: 1rem;
-      overflow: hidden;
-    }
-    .progress {
-      height: 100%;
-      background-color: #2e8b57;
-      width: 0;
-      transition: width 0.5s;
-    }
-    .desafio-info {
+    body {
+      background-color: #c3dbc5;
+      font-family: sans-serif;
       text-align: center;
+      padding: 2rem;
+    }
+    h1 {
+      font-size: 1.4rem;
+      color: #222;
+    }
+    .monitor-box {
+      margin-top: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      align-items: center;
+    }
+    .monitor-card {
+      background-color: #6bc242;
+      color: white;
+      width: 80%;
+      padding: 2rem 0;
+      border-radius: 30px;
+      font-size: 1.4rem;
       font-weight: bold;
-      margin-bottom: 10px;
-      color: #2e8b57;
+      position: relative;
+    }
+    .monitor-card::after {
+      content: "";
+      display: block;
+      border-bottom: 2px solid white;
+      width: 80%;
+      margin: 1rem auto 0;
+    }
+    #statusCorrida {
+      margin-top: 1rem;
+      font-weight: bold;
+      font-size: 1rem;
+      color: #c62828;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>🏃 Correndo com você</h1>
-      <div class="user-info" id="currentUser"></div>
-    </header>
+  <h1>Monitoramento da corrida atual</h1>
 
-    <main class="tracking-interface">
-      <div class="desafio-info" id="desafioNome"></div>
-
-      <div class="progress-bar"><div id="distProgress" class="progress"></div></div>
-      <div class="progress-bar"><div id="timeProgress" class="progress"></div></div>
-
-      <div class="stats">
-        <div class="stat-box">
-          <span class="stat-value" id="timer">00:00:00</span>
-          <span class="stat-label">Tempo</span>
-        </div>
-        <div class="stat-box">
-          <span class="stat-value" id="distance">0.00</span>
-          <span class="stat-label">KM</span>
-        </div>
-        <div class="stat-box">
-          <span class="stat-value" id="pace">--</span>
-          <span class="stat-label">Ritmo</span>
-        </div>
-      </div>
-
-      <button id="startStopBtn" class="big-button">▶ Iniciar Corrida</button>
-    </main>
+  <div class="monitor-box">
+    <div class="monitor-card" id="tempo">Tempo</div>
+    <div class="monitor-card" id="km">KM</div>
   </div>
 
-  <script src="config.js" type="module"></script>
-  <script src="app.js" type="module"></script>
+  <div id="statusCorrida"></div>
+
+  <script type="module" src="app.js"></script>
   <script>
-    const currentUser = JSON.parse(localStorage.getItem('runtracker_current'));
-    const modo = JSON.parse(localStorage.getItem('modoCorrida')) || { tipo: 'livre' };
+    const tempoEl = document.getElementById('tempo');
+    const kmEl = document.getElementById('km');
 
-    if (!currentUser) {
-      window.location.href = 'index.html';
-    } else {
-      document.getElementById('currentUser').textContent = currentUser.name;
-    }
+    let tempoInicio = Date.now();
+    let distancia = 0.00;
 
-    // Mostrar nome do desafio (se existir)
-    const desafioNome = document.getElementById('desafioNome');
-    if (modo.tipo === 'tempo') desafioNome.textContent = `Desafio: ${modo.km}km em ${modo.tempo} min`;
-    if (modo.tipo === 'personalizado') desafioNome.textContent = `Desafio: ${modo.nome} - ${modo.km}km em ${modo.tempo} min`;
-    if (modo.tipo === 'livre') desafioNome.textContent = `Modo Livre`;
+    const timer = setInterval(() => {
+      const diff = Date.now() - tempoInicio;
+      const tempoFormatado = new Date(diff).toISOString().substr(11, 8);
+      tempoEl.textContent = `Tempo: ${tempoFormatado}`;
+    }, 1000);
+
+    const distSimulada = setInterval(() => {
+      distancia += 0.01;
+      kmEl.textContent = `KM: ${distancia.toFixed(2)}`;
+    }, 3000);
   </script>
 </body>
 </html>
+

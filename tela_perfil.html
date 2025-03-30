@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Corrida Espaço Caroli - Perfil</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>👤 Seu Perfil</h1>
+    </header>
+
+    <main class="tracking-interface" id="profileInfo">
+      <!-- Conteúdo gerado via JS -->
+    </main>
+
+    <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 2rem;">
+      <button onclick="window.location.href='tela_historico.html'" class="big-button">📊 Ver Histórico</button>
+      <button onclick="window.location.href='index.html'" class="big-button">⬅ Voltar ao Início</button>
+    </div>
+  </div>
+
+  <script type="module">
+    const currentUser = JSON.parse(localStorage.getItem("runtracker_current"));
+    const users = JSON.parse(localStorage.getItem("runtracker_users")) || [];
+    const user = users.find(u => u.email === currentUser?.email);
+
+    const profileInfo = document.getElementById("profileInfo");
+
+    if (!user) {
+      profileInfo.innerHTML = "<p>Usuário não encontrado.</p>";
+    } else {
+      const totalCorridas = user.activities.length;
+      const totalKm = user.activities.reduce((acc, act) => acc + parseFloat(act.distance || 0), 0).toFixed(2);
+
+      profileInfo.innerHTML = `
+        <div class="user-card">
+          <p><strong>Nome:</strong> ${user.name}</p>
+          <p><strong>E-mail:</strong> ${user.email}</p>
+          <p><strong>Altura:</strong> ${user.height} cm</p>
+          <p><strong>Peso:</strong> ${user.weight} kg</p>
+          <hr />
+          <p><strong>Total de Corridas:</strong> ${totalCorridas}</p>
+          <p><strong>Total de KM Percorridos:</strong> ${totalKm} km</p>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>

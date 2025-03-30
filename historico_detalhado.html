@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Corrida Espaço Caroli - Histórico Detalhado</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📊 Histórico Detalhado</h1>
+      <p id="currentUser"></p>
+    </header>
+
+    <main id="historyContainer"></main>
+
+    <div style="margin-top: 1rem;">
+      <button class="big-button" onclick="exportarCSV()">📄 Exportar em CSV</button>
+      <button class="big-button" onclick="window.location.href='tela_corrida_opcoes.html'">⬅ Voltar ao Menu</button>
+    </div>
+  </div>
+
+  <script type="module">
+    const users = JSON.parse(localStorage.getItem('runtracker_users')) || [];
+    const user = users[users.length - 1];
+    const container = document.getElementById('historyContainer');
+    document.getElementById('currentUser').textContent = `Olá, ${user.name}`;
+
+    if (!user.activities.length) {
+      container.innerHTML = '<p>Você ainda não fez nenhuma corrida.</p>';
+    } else {
+      user.activities.slice().reverse().forEach((a, i) => {
+        const div = document.createElement('div');
+        div.className = 'user-card';
+        div.innerHTML = `
+          <p><strong>#${user.activities.length - i}</strong></p>
+          <p><strong>Data:</strong> ${a.date}</p>
+          <p><strong>Duração:</strong> ${a.duration}</p>
+          <p><strong>Distância:</strong> ${a.distance} km</p>
+          <p><strong>Ritmo:</strong> ${a.pace}</p>
+          <p><strong>Intensidade:</strong> ${a.intensity || '--'}</p>
+          <p><strong>Desafio:</strong> ${a.desafio || 'Livre'}</p>
+          <button class="big-button" onclick="verMapa(${i})">📍 Ver Trajeto</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    window.verMapa = function(index) {
+      localStorage.setItem('trajeto_index', index);
+      window.location.href = 'mapa_trajeto.html';
+    }
+
+    window.exportarCSV = function() {
+      const linhas = [
+        ['Data', 'Distância', 'Duração', 'Ritmo', 'Intensidade', 'Desafio']
+      ];
+
+      user.activities.forEach(a => {
+        linhas.push([
+          a.date, a.distance, a.duration, a.pace, a.intensity || '--', a.desafio || 'Livre'
+        ]);
+      });
+
+      const csv = linhas.map(linha => linha.join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'historico_corridas.csv';
+      a.click();
+    }
+  </script>
+</body>
+</html>

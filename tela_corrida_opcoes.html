@@ -15,7 +15,14 @@
 
     <main>
       <button class="big-button" onclick="startCorridaLivre()">🏃 Corrida Livre</button>
-      <button class="big-button" onclick="startDesafioTempo()">⏱️ Desafio de Tempo</button>
+
+      <h3>🏁 Desafios por Nível</h3>
+      <div class="auth-forms">
+        <button class="intensity-btn" onclick="desafioNivel('iniciante')">👟 Iniciante</button>
+        <button class="intensity-btn" onclick="desafioNivel('intermediario')">🏃 Intermediário</button>
+        <button class="intensity-btn" onclick="desafioNivel('profissional')">🔥 Profissional</button>
+      </div>
+
       <button class="big-button" onclick="criarDesafio()">🎯 Criar Desafio Personalizado</button>
     </main>
   </div>
@@ -33,13 +40,21 @@
       window.location.href = "tela_corrida.html";
     }
 
-    function startDesafioTempo() {
-      const km = prompt("Quantos km você quer correr?");
-      const tempo = prompt("Em quantos minutos você quer completar?");
-      if (km && tempo) {
-        localStorage.setItem("modoCorrida", JSON.stringify({ tipo: "tempo", km: parseFloat(km), tempo: parseFloat(tempo) }));
-        window.location.href = "tela_corrida.html";
+    function desafioNivel(nivel) {
+      let desafio;
+      switch (nivel) {
+        case 'iniciante':
+          desafio = { tipo: 'tempo', nome: 'Iniciante', km: 2, tempo: 20 };
+          break;
+        case 'intermediario':
+          desafio = { tipo: 'tempo', nome: 'Intermediário', km: 5, tempo: 30 };
+          break;
+        case 'profissional':
+          desafio = { tipo: 'tempo', nome: 'Profissional', km: 10, tempo: 45 };
+          break;
       }
+      localStorage.setItem("modoCorrida", JSON.stringify(desafio));
+      window.location.href = "tela_corrida.html";
     }
 
     function criarDesafio() {

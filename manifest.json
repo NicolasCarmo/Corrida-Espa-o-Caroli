@@ -1,22 +1,23 @@
 {
-    "name": "Corrida Espaço Caroli",
-    "short_name": "Espaço Caroli",
-    "start_url": "index.html",
-    "display": "standalone",
-    "background_color": "#e6f8ea",
-    "theme_color": "#2e8b57",
-    "orientation": "portrait",
-    "icons": [
-      {
-        "src": "icons/icon-192.png",
-        "sizes": "192x192",
-        "type": "image/png"
-      },
-      {
-        "src": "icons/icon-512.png",
-        "sizes": "512x512",
-        "type": "image/png"
-      }
-    ]
-  }
+  "name": "Corrida Espaço Caroli",
+  "short_name": "Espaço Caroli",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#e6f8ea",
+  "theme_color": "#2e8b57",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icons/logo-certo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/logo-certo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
+
   

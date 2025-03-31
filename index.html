@@ -1,98 +1,114 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Corrida Espaço Caroli - Início</title>
-  <link rel="stylesheet" href="style.css">
-  <style>
-    body {
-      background-color: #c3dbc5;
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 2rem;
+  <meta name="theme-color" content="#2e8b57" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" sizes="192x192" href="icons/logo-certo.png" />
+  <link rel="apple-touch-icon" href="icons/logo-certo.png" />
+  <link rel="stylesheet" href="style.css" />
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log('✅ Service Worker registrado!'))
+        .catch(error => console.log('❌ Erro ao registrar:', error));
     }
-    .logo {
-      width: 180px;
-      margin-bottom: 1rem;
-    }
-    h1 {
-      font-size: 1.3rem;
-      color: #2e8b57;
-      margin-bottom: 2rem;
-    }
-    .input-box {
-      width: 100%;
-      max-width: 300px;
-      background: white;
-      border-radius: 8px;
-      padding: 1rem;
-      box-shadow: 0 0 6px rgba(0,0,0,0.1);
-    }
-    .input-box input {
-      width: 100%;
-      padding: 0.7rem;
-      margin: 0.5rem 0;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-    .input-box button {
-      width: 100%;
-      padding: 0.9rem;
-      margin-top: 1rem;
-      background-color: #7ec441;
-      color: white;
-      font-weight: bold;
-      font-size: 1rem;
-      border: none;
-      border-radius: 30px;
-      cursor: pointer;
-    }
-    .divider {
-      text-align: center;
-      margin: 1rem 0;
-      font-weight: bold;
-    }
-    .input-box .secondary {
-      background-color: white;
-      color: #2e8b57;
-      border: 2px solid #2e8b57;
-    }
-  </style>
+  </script>
 </head>
-<body>
-  <img src="icons/logo-certo.png" alt="Logo Caroli" class="logo">
-  <h1>Corrida Espaço Caroli</h1>
+<body class="welcome">
+  <div class="container">
+    <header>
+      <img src="icons/logo-certo.png" alt="Logo Caroli" style="width: 180px; margin-bottom: 1rem;">
+      <h1>Corrida Espaço Caroli</h1>
+      <p class="address">
+        Espaço Caroli<br />
+        Rua Beija Flor, 2000 - Cabralzinho
+      </p>
+    </header>
 
-  <div class="input-box">
-    <label for="loginEmail">📧 Digite seu e-mail</label>
-    <input type="email" id="loginEmail" placeholder="email@exemplo.com" required>
-    <button id="acessarBtn">Acessar</button>
-    <div class="divider">OU</div>
-    <button class="secondary" onclick="window.location.href='tela_perfil.html'">Cadastre-se</button>
+    <main class="auth-forms">
+      <form id="loginForm">
+        <h2>Entrar</h2>
+        <label for="loginEmail">E-mail cadastrado</label>
+        <input type="email" id="loginEmail" placeholder="Digite seu e-mail" required />
+
+        <label for="loginPassword">Senha</label>
+        <input type="password" id="loginPassword" placeholder="Digite sua senha" required />
+
+        <button type="submit">Acessar</button>
+        <button type="button" id="resetPasswordBtn" style="margin-top: 0.5rem; background-color: #ccc; color: #000;">Redefinir Senha</button>
+      </form>
+
+      <hr />
+
+      <form>
+        <button type="button" onclick="window.location.href='tela_perfil.html'">Cadastre-se</button>
+      </form>
+
+      <div class="admin-login">
+        <h3>Área do Administrador</h3>
+        <button onclick="window.location.href='admin.html'">Entrar como Admin</button>
+      </div>
+    </main>
   </div>
 
   <script type="module">
-    import { ADMIN_PASSWORD } from './config.js';
+    import { auth, db } from './firebase.js';
+    import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js';
+    import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js';
 
-    const users = JSON.parse(localStorage.getItem('runtracker_users')) || [];
-    document.getElementById('acessarBtn').addEventListener('click', () => {
-      const email = document.getElementById('loginEmail').value;
-      const user = users.find(u => u.email === email);
-      if (user) {
-        localStorage.setItem('runtracker_current', JSON.stringify(user));
-        window.location.href = 'tela_corrida_opcoes.html';
-      } else {
-        alert('E-mail não encontrado. Cadastre-se primeiro.');
+    const loginForm = document.getElementById('loginForm');
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+      const password = document.getElementById('loginPassword').value.trim();
+
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        const docRef = doc(db, 'users', user.uid);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const userData = docSnap.data();
+          localStorage.setItem('runtracker_current', JSON.stringify({
+            uid: user.uid,
+            ...userData
+          }));
+          window.location.href = 'tela_corrida_opcoes.html';
+        } else {
+          alert("Dados do usuário não encontrados no Firestore.");
+        }
+      } catch (error) {
+        console.error("Erro ao fazer login:", error);
+        alert("Falha no login: " + error.message);
+      }
+    });
+
+    document.getElementById('resetPasswordBtn').addEventListener('click', async () => {
+      const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+      if (!email) {
+        alert("Digite seu e-mail para redefinir a senha.");
+        return;
+      }
+      try {
+        await sendPasswordResetEmail(auth, email);
+        alert("Um link para redefinir sua senha foi enviado para o seu e-mail.");
+      } catch (err) {
+        console.error("Erro ao redefinir senha:", err);
+        alert("Erro ao tentar redefinir a senha: " + err.message);
       }
     });
   </script>
 </body>
 </html>
+
+
+
 
 
 

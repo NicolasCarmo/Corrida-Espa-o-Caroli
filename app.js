@@ -1,6 +1,7 @@
 import { ADMIN_PASSWORD } from './config.js';
+import { db } from './firebase.js';
+import { doc, updateDoc, arrayUnion } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js';
 
-let users = JSON.parse(localStorage.getItem('runtracker_users')) || [];
 let currentUser = JSON.parse(localStorage.getItem('runtracker_current')) || null;
 let isRunning = false;
 let startTime, timerInterval;
@@ -8,9 +9,9 @@ let gpsWatchId = null;
 let gpsTrack = [];
 let selectedIntensity = '--';
 const modoCorrida = JSON.parse(localStorage.getItem('modoCorrida')) || { tipo: 'livre' };
-
+let totalDistance = 0;
 let lastSpokenKm = 0;
-let lastTotalDistance = 0;
+let lastMovementTime = Date.now();
 
 function navigateTo(page) {
   window.location.href = page;
@@ -20,9 +21,12 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(lat1 * Math.PI / 180) *
+            Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) ** 2;
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c; // retorna km
+  return R * c; // retorna em km
 }
 
 if (document.getElementById('startStopBtn')) {
@@ -47,17 +51,30 @@ if (document.getElementById('startStopBtn')) {
     btn.textContent = '⏹ Parar Corrida';
     startTime = Date.now();
     gpsTrack = [];
+    totalDistance = 0;
     lastSpokenKm = 0;
-    lastTotalDistance = 0;
-    distance.textContent = '0.00';
-    pace.textContent = '--';
-    speak("Prepare-se: 5, 4, 3, 2, 1, vai!");
+    speak("Prepare-se. 5, 4, 3, 2, 1, vai!");
 
     if (navigator.geolocation) {
       gpsWatchId = navigator.geolocation.watchPosition(
         (pos) => {
-          gpsTrack.push({ lat: pos.coords.latitude, lng: pos.coords.longitude, timestamp: pos.timestamp });
-          atualizarDistanciaEInfos();
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          const timestamp = pos.timestamp;
+
+          const last = gpsTrack[gpsTrack.length - 1];
+          if (last) {
+            const dist = haversineDistance(last.lat, last.lng, lat, lng);
+            if (dist >= 0.005) { // só considera movimento real acima de 5m
+              gpsTrack.push({ lat, lng, timestamp });
+              totalDistance += dist;
+              lastMovementTime = Date.now();
+            }
+          } else {
+            gpsTrack.push({ lat, lng, timestamp });
+          }
+
+          atualizarDados();
         },
         (err) => console.error('Erro GPS:', err),
         { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
@@ -69,67 +86,57 @@ if (document.getElementById('startStopBtn')) {
       const minutes = elapsed / 1000 / 60;
       timer.textContent = new Date(elapsed).toISOString().substr(11, 8);
 
-      if (modoCorrida.tipo !== 'livre' && modoCorrida.tempo) {
+      if (modoCorrida.tempo && timeBar) {
         const progress = Math.min((minutes / modoCorrida.tempo) * 100, 100);
-        if (timeBar) timeBar.style.width = progress + '%';
+        timeBar.style.width = progress + '%';
+      }
+
+      if (Date.now() - lastMovementTime > 20000) {
+        speak("Você está parado. Comece a se mover!");
+        lastMovementTime = Date.now();
       }
     }, 1000);
   }
 
-  function atualizarDistanciaEInfos() {
-    if (gpsTrack.length < 2) return;
-    let total = 0;
-    for (let i = 1; i < gpsTrack.length; i++) {
-      total += haversineDistance(
-        gpsTrack[i - 1].lat,
-        gpsTrack[i - 1].lng,
-        gpsTrack[i].lat,
-        gpsTrack[i].lng
-      );
+  function atualizarDados() {
+    const dist = totalDistance;
+    const elapsedMin = (Date.now() - startTime) / 1000 / 60;
+    const paceVal = elapsedMin / dist;
+
+    document.getElementById('distance').textContent = dist.toFixed(2);
+    document.getElementById('pace').textContent = isFinite(paceVal) ? paceVal.toFixed(2) + ' min/km' : '--';
+
+    if (Math.floor(dist * 2) > lastSpokenKm) {
+      speak(`Você já correu ${dist.toFixed(2)} quilômetros.`);
+      lastSpokenKm = Math.floor(dist * 2);
     }
 
-    total = Math.round(total * 100) / 100; // em km
-    distance.textContent = total.toFixed(2);
-
-    const minutes = (Date.now() - startTime) / 1000 / 60;
-    const paceValue = minutes / total;
-    pace.textContent = isFinite(paceValue) ? paceValue.toFixed(2) + ' min/km' : '--';
-
-    if (total === lastTotalDistance) speak("Você está parado. Comece a se mover!");
-    lastTotalDistance = total;
-
-    if (Math.floor(total * 1000) % 500 === 0 && Math.floor(total * 1000) !== lastSpokenKm) {
-      speak(`Você já correu ${total.toFixed(2)} quilômetros.`);
-      lastSpokenKm = Math.floor(total * 1000);
+    if (modoCorrida.tipo !== 'livre' && modoCorrida.km) {
+      const progresso = Math.min((dist / modoCorrida.km) * 100, 100);
+      if (distBar) distBar.style.width = progresso + '%';
     }
 
     if (modoCorrida.tipo === 'tempo' || modoCorrida.tipo === 'personalizado') {
-      const tempoMeta = modoCorrida.tempo;
-      const distanciaMeta = modoCorrida.km;
-
-      if (total >= distanciaMeta) {
-        const minutos = minutes;
-        if (minutos <= tempoMeta) speak('Desafio concluído com sucesso!');
+      if (dist >= modoCorrida.km) {
+        const minutos = elapsedMin;
+        if (minutos <= modoCorrida.tempo) speak('Desafio concluído com sucesso!');
         else speak('Você concluiu, mas ultrapassou o tempo.');
         stopTracking();
         return;
       }
 
-      const ritmoAtual = total / minutes; // km por minuto
-      const ritmoEsperado = distanciaMeta / tempoMeta;
+      const ritmoAtual = dist / elapsedMin;
+      const ritmoMeta = modoCorrida.km / modoCorrida.tempo;
 
-      if (ritmoAtual < ritmoEsperado * 0.9) speak('Você está abaixo da média. Acelere para bater a meta.');
-      else if (ritmoAtual >= ritmoEsperado * 0.9 && ritmoAtual <= ritmoEsperado * 1.1) speak('Você está indo bem. Mantenha esse ritmo!');
-      else speak('Você está acima da média. Excelente!');
-    }
-
-    if (modoCorrida.tipo !== 'livre' && modoCorrida.km) {
-      const progress = Math.min((total / modoCorrida.km) * 100, 100);
-      if (distBar) distBar.style.width = progress + '%';
+      if (Math.abs(dist - Math.round(dist)) < 0.02) {
+        if (ritmoAtual < ritmoMeta * 0.9) speak('Você está abaixo da média. Acelere para bater a meta.');
+        else if (ritmoAtual <= ritmoMeta * 1.1) speak('Você está indo bem. Mantenha esse ritmo!');
+        else speak('Você está acima da média. Excelente!');
+      }
     }
   }
 
-  function stopTracking() {
+  async function stopTracking() {
     isRunning = false;
     btn.textContent = '▶ Iniciar Corrida';
     clearInterval(timerInterval);
@@ -141,7 +148,7 @@ if (document.getElementById('startStopBtn')) {
     const activity = {
       date: new Date().toLocaleString(),
       duration: document.getElementById('timer').textContent,
-      distance: document.getElementById('distance').textContent,
+      distance: totalDistance.toFixed(2),
       pace: document.getElementById('pace').textContent,
       intensity: selectedIntensity,
       route: gpsTrack,
@@ -149,23 +156,32 @@ if (document.getElementById('startStopBtn')) {
       desafio: modoCorrida.nome || null
     };
 
-    const idx = users.findIndex(u => u.email === currentUser.email);
-    if (idx !== -1) {
-      users[idx].activities.push(activity);
-      localStorage.setItem('runtracker_users', JSON.stringify(users));
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      await updateDoc(userRef, {
+        activities: arrayUnion(activity)
+      });
+      currentUser.activities = [...(currentUser.activities || []), activity];
+      localStorage.setItem('runtracker_current', JSON.stringify(currentUser));
+    } catch (err) {
+      console.error('Erro ao salvar atividade:', err);
     }
 
     localStorage.removeItem('modoCorrida');
-    window.location.href = 'tela_fim_corrida.html';
+    navigateTo('tela_fim_corrida.html');
   }
 
   function speak(text) {
     const synth = window.speechSynthesis;
+    if (!synth) return;
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = 'pt-BR';
+    synth.cancel();
     synth.speak(utter);
   }
-} // fim do startStopBtn
+}
+
+
 
 
 
